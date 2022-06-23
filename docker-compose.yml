@@ -1,0 +1,44 @@
+version: '3.7'
+
+services:
+  django_cloud:
+    build: ./
+    container_name: django_cloud
+    restart: always
+    command: bash entrypoint.sh
+    volumes:
+      - .:/usr/src/app
+      - ./static:/usr/src/app/static
+      - ./media:/usr/src/app/media
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    env_file:
+      - ./.env.dev
+
+
+  db:
+    image: postgres:12
+    container_name: cloud_db
+    volumes:
+      - pg_data:/var/lib/postgresql/data/
+    ports:
+      - 5432:5432
+    env_file:
+      - ./.env.dev
+
+  nginx:
+    build: ./nginx
+    container_name: cloud_nginx
+    restart: on-failure
+    ports:
+      - 80:80
+    volumes:
+      - ./static:/static
+      - ./media:/media
+    depends_on:
+      - django_cloud
+
+volumes:
+  pg_data:
